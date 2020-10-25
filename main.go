@@ -72,6 +72,7 @@ func genericHTTPProxy(w http.ResponseWriter, req *http.Request) {
 	w.WriteHeader(resp.StatusCode)
 
 	io.Copy(w, resp.Body)
+	resp.Body.Close()
 }
 
 func copyHeaders(from http.Header, to http.Header) {
