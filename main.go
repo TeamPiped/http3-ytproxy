@@ -58,11 +58,8 @@ func genericHTTPProxy(w http.ResponseWriter, req *http.Request) {
 
 	var client *http.Client
 
-	if strings.HasPrefix(req.URL.Path, "/videoplayback") { // https://github.com/lucas-clemente/quic-go/issues/2836
-		client = h2client
-	} else {
-		client = h3client
-	}
+	// https://github.com/lucas-clemente/quic-go/issues/2836
+	client = h2client
 
 	resp, err := client.Do(request)
 
