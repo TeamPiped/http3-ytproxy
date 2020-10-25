@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"syscall"
 
 	"github.com/lucas-clemente/quic-go/http3"
 )
@@ -109,6 +110,7 @@ func main() {
 	http.HandleFunc("/vi/", genericHTTPProxy)
 	http.HandleFunc("/a/", genericHTTPProxy)
 	http.HandleFunc("/ggpht/", genericHTTPProxy)
+	syscall.Unlink("http-proxy.sock")
 	listener, err := net.Listen("unix", "http-proxy.sock")
 	if err != nil {
 		fmt.Println("Failed to bind to UDS, falling back to TCP/IP")
