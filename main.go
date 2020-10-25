@@ -7,6 +7,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"os"
 	"strings"
 	"syscall"
 
@@ -110,8 +111,9 @@ func main() {
 	http.HandleFunc("/vi/", genericHTTPProxy)
 	http.HandleFunc("/a/", genericHTTPProxy)
 	http.HandleFunc("/ggpht/", genericHTTPProxy)
-	syscall.Unlink("http-proxy.sock")
-	listener, err := net.Listen("unix", "http-proxy.sock")
+	socket := "socket" + string(os.PathSeparator) + "http-proxy.sock"
+	syscall.Unlink(socket)
+	listener, err := net.Listen("unix", socket)
 	if err != nil {
 		fmt.Println("Failed to bind to UDS, falling back to TCP/IP")
 		fmt.Println(err.Error())
