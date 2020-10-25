@@ -1,0 +1,5 @@
+*.md
+*.sock
+.dockerignore
+Dockerfile
+LICENSE
