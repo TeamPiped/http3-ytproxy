@@ -47,6 +47,10 @@ func genericHTTPProxy(w http.ResponseWriter, req *http.Request) {
 
 	proxyURL.RawQuery = q.Encode()
 
+	if strings.HasSuffix(proxyURL.Path, "maxres.jpg") {
+		proxyURL.Path = getBestThumbnail(proxyURL.Path)
+	}
+
 	request, err := http.NewRequest("GET", proxyURL.String(), nil)
 
 	copyHeaders(req.Header, request.Header)
@@ -102,6 +106,22 @@ func getHost(path string) (host string) {
 	}
 
 	return host
+}
+
+func getBestThumbnail(path string) (newpath string) {
+
+	formats := [4]string{"maxresdefault.jpg", "sddefault.jpg", "hqdefault.jpg", "mqdefault.jpg"}
+
+	for _, format := range formats {
+		newpath = strings.Replace(path, "maxres.jpg", format, 1)
+		url := "https://i.ytimg.com" + newpath
+		resp, _ := h2client.Head(url)
+		if resp.StatusCode == 200 {
+			return newpath
+		}
+	}
+
+	return strings.Replace(path, "maxres.jpg", "mqdefault.jpg", 1)
 }
 
 func main() {
