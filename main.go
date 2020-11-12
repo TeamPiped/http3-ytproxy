@@ -39,7 +39,12 @@ func genericHTTPProxy(w http.ResponseWriter, req *http.Request) {
 		log.Panic("No host in query parameters.")
 	}
 
-	proxyURL, err := url.Parse("https://" + host + strings.Replace(req.URL.Path, "/ggpht", "", 1))
+	path := req.URL.Path
+
+	path = strings.Replace(path, "/ggpht", "", 1)
+	path = strings.Replace(path, "/i/", "/", 1)
+
+	proxyURL, err := url.Parse("https://" + host + path)
 
 	if err != nil {
 		log.Panic(err)
@@ -93,7 +98,7 @@ func getHost(path string) (host string) {
 
 	host = ""
 
-	if strings.HasPrefix(path, "/vi/") {
+	if strings.HasPrefix(path, "/vi/") || strings.HasPrefix(path, "/sb/") {
 		host = "i.ytimg.com"
 	}
 
@@ -129,6 +134,7 @@ func main() {
 	http.HandleFunc("/vi/", genericHTTPProxy)
 	http.HandleFunc("/a/", genericHTTPProxy)
 	http.HandleFunc("/ggpht/", genericHTTPProxy)
+	http.HandleFunc("/sb/", genericHTTPProxy)
 	socket := "socket" + string(os.PathSeparator) + "http-proxy.sock"
 	syscall.Unlink(socket)
 	listener, err := net.Listen("unix", socket)
