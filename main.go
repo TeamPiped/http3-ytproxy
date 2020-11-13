@@ -98,7 +98,7 @@ func getHost(path string) (host string) {
 
 	host = ""
 
-	if strings.HasPrefix(path, "/vi/") || strings.HasPrefix(path, "/sb/") {
+	if strings.HasPrefix(path, "/vi/") || strings.HasPrefix(path, "/vi_webp/") || strings.HasPrefix(path, "/sb/") {
 		host = "i.ytimg.com"
 	}
 
@@ -132,6 +132,7 @@ func getBestThumbnail(path string) (newpath string) {
 func main() {
 	http.HandleFunc("/videoplayback", genericHTTPProxy)
 	http.HandleFunc("/vi/", genericHTTPProxy)
+	http.HandleFunc("/vi_webp/", genericHTTPProxy)
 	http.HandleFunc("/a/", genericHTTPProxy)
 	http.HandleFunc("/ggpht/", genericHTTPProxy)
 	http.HandleFunc("/sb/", genericHTTPProxy)
