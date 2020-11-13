@@ -106,7 +106,7 @@ func getHost(path string) (host string) {
 		host = "yt3.ggpht.com"
 	}
 
-	if strings.HasPrefix(path, "/a/") {
+	if strings.HasPrefix(path, "/a/") || strings.HasPrefix(path, "/ytc/") {
 		host = "yt3.ggpht.com"
 	}
 
@@ -134,6 +134,7 @@ func main() {
 	http.HandleFunc("/vi/", genericHTTPProxy)
 	http.HandleFunc("/vi_webp/", genericHTTPProxy)
 	http.HandleFunc("/a/", genericHTTPProxy)
+	http.HandleFunc("/ytc/", genericHTTPProxy)
 	http.HandleFunc("/ggpht/", genericHTTPProxy)
 	http.HandleFunc("/sb/", genericHTTPProxy)
 	socket := "socket" + string(os.PathSeparator) + "http-proxy.sock"
