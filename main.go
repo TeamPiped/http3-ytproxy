@@ -137,6 +137,7 @@ func main() {
 	http.HandleFunc("/ytc/", genericHTTPProxy)
 	http.HandleFunc("/ggpht/", genericHTTPProxy)
 	http.HandleFunc("/sb/", genericHTTPProxy)
+	http.HandleFunc("/api/v3/streams/", genericHTTPProxy)
 	socket := "socket" + string(os.PathSeparator) + "http-proxy.sock"
 	syscall.Unlink(socket)
 	listener, err := net.Listen("unix", socket)
