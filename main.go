@@ -32,6 +32,10 @@ func genericHTTPProxy(w http.ResponseWriter, req *http.Request) {
 	q.Del("host")
 
 	if len(host) <= 0 {
+		host = q.Get("hls_chunk_host")
+	}
+
+	if len(host) <= 0 {
 		host = getHost(req.URL.Path)
 	}
 
