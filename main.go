@@ -134,14 +134,7 @@ func getBestThumbnail(path string) (newpath string) {
 }
 
 func main() {
-	http.HandleFunc("/videoplayback", genericHTTPProxy)
-	http.HandleFunc("/vi/", genericHTTPProxy)
-	http.HandleFunc("/vi_webp/", genericHTTPProxy)
-	http.HandleFunc("/a/", genericHTTPProxy)
-	http.HandleFunc("/ytc/", genericHTTPProxy)
-	http.HandleFunc("/ggpht/", genericHTTPProxy)
-	http.HandleFunc("/sb/", genericHTTPProxy)
-	http.HandleFunc("/api/v3/streams/", genericHTTPProxy)
+	http.HandleFunc("/", genericHTTPProxy)
 	socket := "socket" + string(os.PathSeparator) + "http-proxy.sock"
 	syscall.Unlink(socket)
 	listener, err := net.Listen("unix", socket)
