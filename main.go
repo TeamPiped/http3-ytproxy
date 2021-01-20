@@ -40,7 +40,8 @@ func genericHTTPProxy(w http.ResponseWriter, req *http.Request) {
 	}
 
 	if len(host) <= 0 {
-		log.Panic("No host in query parameters.")
+		io.WriteString(w, "No host in query parameters.")
+		return
 	}
 
 	path := req.URL.Path
