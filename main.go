@@ -25,7 +25,9 @@ var h2client = &http.Client{}
 // user agent to use
 var ua = "Mozilla/5.0 (Windows NT 10.0; rv:78.0) Gecko/20100101"
 
-func genericHTTPProxy(w http.ResponseWriter, req *http.Request) {
+type requesthandler struct{}
+
+func (*requesthandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 	q := req.URL.Query()
 	host := q.Get("host")
@@ -81,12 +83,13 @@ func genericHTTPProxy(w http.ResponseWriter, req *http.Request) {
 		log.Panic(err)
 	}
 
+	defer resp.Body.Close()
+
 	copyHeaders(resp.Header, w.Header())
 
 	w.WriteHeader(resp.StatusCode)
 
 	io.Copy(w, resp.Body)
-	resp.Body.Close()
 }
 
 func copyHeaders(from http.Header, to http.Header) {
@@ -135,15 +138,15 @@ func getBestThumbnail(path string) (newpath string) {
 }
 
 func main() {
-	http.HandleFunc("/", genericHTTPProxy)
 	socket := "socket" + string(os.PathSeparator) + "http-proxy.sock"
 	syscall.Unlink(socket)
 	listener, err := net.Listen("unix", socket)
 	if err != nil {
 		fmt.Println("Failed to bind to UDS, falling back to TCP/IP")
 		fmt.Println(err.Error())
-		http.ListenAndServe(":8080", nil)
+		http.ListenAndServe(":8080", &requesthandler{})
 	} else {
-		http.Serve(listener, nil)
+		defer listener.Close()
+		http.Serve(listener, &requesthandler{})
 	}
 }
