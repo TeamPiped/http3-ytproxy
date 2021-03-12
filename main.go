@@ -10,6 +10,7 @@ import (
 	"os"
 	"strings"
 	"syscall"
+	"time"
 
 	"github.com/lucas-clemente/quic-go/http3"
 )
@@ -20,7 +21,18 @@ var h3client = &http.Client{
 }
 
 // http/2 client
-var h2client = &http.Client{}
+var h2client = &http.Client{
+	Transport: &http.Transport{
+		Dial: (&net.Dialer{
+			Timeout:   30 * time.Second,
+			KeepAlive: 30 * time.Second,
+		}).Dial,
+		TLSHandshakeTimeout:   10 * time.Second,
+		ResponseHeaderTimeout: 10 * time.Second,
+		ExpectContinueTimeout: 1 * time.Second,
+		IdleConnTimeout:       120 * time.Second,
+	},
+}
 
 // user agent to use
 var ua = "Mozilla/5.0 (Windows NT 10.0; rv:78.0) Gecko/20100101"
@@ -141,12 +153,18 @@ func main() {
 	socket := "socket" + string(os.PathSeparator) + "http-proxy.sock"
 	syscall.Unlink(socket)
 	listener, err := net.Listen("unix", socket)
+	srv := &http.Server{
+		ReadTimeout:  5 * time.Second,
+		WriteTimeout: 10 * time.Second,
+		Addr:         ":8080",
+		Handler:      &requesthandler{},
+	}
 	if err != nil {
 		fmt.Println("Failed to bind to UDS, falling back to TCP/IP")
 		fmt.Println(err.Error())
-		http.ListenAndServe(":8080", &requesthandler{})
+		srv.ListenAndServe()
 	} else {
 		defer listener.Close()
-		http.Serve(listener, &requesthandler{})
+		srv.Serve(listener)
 	}
 }
