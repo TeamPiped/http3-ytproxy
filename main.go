@@ -31,6 +31,11 @@ var h2client = &http.Client{
 		ResponseHeaderTimeout: 10 * time.Second,
 		ExpectContinueTimeout: 1 * time.Second,
 		IdleConnTimeout:       30 * time.Second,
+		ReadBufferSize:        16 * 1024,
+		ForceAttemptHTTP2:     true,
+		MaxConnsPerHost:       0,
+		MaxIdleConnsPerHost:   10,
+		MaxIdleConns:          0,
 	},
 }
 
