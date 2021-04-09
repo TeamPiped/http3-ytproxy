@@ -30,7 +30,7 @@ var h2client = &http.Client{
 		TLSHandshakeTimeout:   10 * time.Second,
 		ResponseHeaderTimeout: 10 * time.Second,
 		ExpectContinueTimeout: 1 * time.Second,
-		IdleConnTimeout:       120 * time.Second,
+		IdleConnTimeout:       30 * time.Second,
 	},
 }
 
