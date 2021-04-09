@@ -101,7 +101,7 @@ func (*requesthandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 	w.WriteHeader(resp.StatusCode)
 
-	io.Copy(w, resp.Body)
+	go io.Copy(w, resp.Body)
 }
 
 func copyHeaders(from http.Header, to http.Header) {
