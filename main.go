@@ -80,8 +80,6 @@ func (*requesthandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		proxyURL.RawPath = getBestThumbnail(proxyURL.EscapedPath())
 	}
 
-	fmt.Println(proxyURL.String())
-
 	request, err := http.NewRequest("GET", proxyURL.String(), nil)
 
 	copyHeaders(req.Header, request.Header)
