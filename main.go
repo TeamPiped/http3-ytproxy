@@ -55,7 +55,7 @@ func (*requesthandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	}
 
 	if len(host) <= 0 {
-		host = getHost(req.URL.Path)
+		host = getHost(req.URL.RawPath)
 	}
 
 	if len(host) <= 0 {
@@ -63,7 +63,7 @@ func (*requesthandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	path := req.URL.Path
+	path := req.URL.RawPath
 
 	path = strings.Replace(path, "/ggpht", "", 1)
 	path = strings.Replace(path, "/i/", "/", 1)
@@ -76,8 +76,8 @@ func (*requesthandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 	proxyURL.RawQuery = q.Encode()
 
-	if strings.HasSuffix(proxyURL.Path, "maxres.jpg") {
-		proxyURL.Path = getBestThumbnail(proxyURL.Path)
+	if strings.HasSuffix(proxyURL.RawPath, "maxres.jpg") {
+		proxyURL.RawPath = getBestThumbnail(proxyURL.RawPath)
 	}
 
 	request, err := http.NewRequest("GET", proxyURL.String(), nil)
