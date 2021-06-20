@@ -77,7 +77,7 @@ func (*requesthandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	proxyURL.RawQuery = q.Encode()
 
 	if strings.HasSuffix(proxyURL.EscapedPath(), "maxres.jpg") {
-		proxyURL.RawPath = getBestThumbnail(proxyURL.EscapedPath())
+		proxyURL.Path = getBestThumbnail(proxyURL.EscapedPath())
 	}
 
 	request, err := http.NewRequest("GET", proxyURL.String(), nil)
