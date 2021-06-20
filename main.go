@@ -135,6 +135,11 @@ func getHost(path string) (host string) {
 		host = "yt3.ggpht.com"
 	}
 
+	if strings.Contains(path, "/host/") {
+		path = path[(strings.Index(path, "/host/") + 6):]
+		host = path[0:strings.Index(path, "/")]
+	}
+
 	return host
 }
 
