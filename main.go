@@ -28,7 +28,7 @@ var h2client = &http.Client{
 			KeepAlive: 30 * time.Second,
 		}).Dial,
 		TLSHandshakeTimeout:   10 * time.Second,
-		ResponseHeaderTimeout: 10 * time.Second,
+		ResponseHeaderTimeout: 20 * time.Second,
 		ExpectContinueTimeout: 1 * time.Second,
 		IdleConnTimeout:       30 * time.Second,
 		ReadBufferSize:        16 * 1024,
