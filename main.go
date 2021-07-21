@@ -42,6 +42,13 @@ var h2client = &http.Client{
 // user agent to use
 var ua = "Mozilla/5.0 (Windows NT 10.0; rv:78.0) Gecko/20100101"
 
+var allowed_hosts = []string{
+	"youtube.com",
+	"googlevideo.com",
+	"ytimg.com",
+	"ggpht.com",
+}
+
 type requesthandler struct{}
 
 func (*requesthandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
@@ -60,6 +67,29 @@ func (*requesthandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 	if len(host) <= 0 {
 		io.WriteString(w, "No host in query parameters.")
+		return
+	}
+
+	parts := strings.Split(strings.ToLower(host), ".")
+
+	if len(parts) < 2 {
+		io.WriteString(w, "Invalid hostname.")
+		return
+	}
+
+	domain := parts[len(parts)-2] + "." + parts[len(parts)-1]
+
+	disallowed := true
+
+	for _, value := range allowed_hosts {
+		if domain == value {
+			disallowed = false
+			break
+		}
+	}
+
+	if disallowed {
+		io.WriteString(w, "Non YouTube domains are not supported.")
 		return
 	}
 
