@@ -47,6 +47,7 @@ var allowed_hosts = []string{
 	"googlevideo.com",
 	"ytimg.com",
 	"ggpht.com",
+	"googleusercontent.com",
 }
 
 type requesthandler struct{}
