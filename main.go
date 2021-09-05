@@ -95,6 +95,11 @@ func (*requesthandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	if req.Method != "GET" && req.Method != "HEAD" {
+		io.WriteString(w, "Only GET and HEAD requests are allowed.")
+		return
+	}
+
 	path := req.URL.EscapedPath()
 
 	path = strings.Replace(path, "/ggpht", "", 1)
@@ -112,7 +117,7 @@ func (*requesthandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		proxyURL.Path = getBestThumbnail(proxyURL.EscapedPath())
 	}
 
-	request, err := http.NewRequest("GET", proxyURL.String(), nil)
+	request, err := http.NewRequest(req.Method, proxyURL.String(), nil)
 
 	copyHeaders(req.Header, request.Header)
 	request.Header.Set("User-Agent", ua)
@@ -138,15 +143,38 @@ func (*requesthandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 	w.WriteHeader(resp.StatusCode)
 
-	io.Copy(w, resp.Body)
+	if req.Method == "GET" && resp.Header.Get("Content-Type") == "application/x-mpegurl" {
+		bytes, err := io.ReadAll(resp.Body)
+
+		if err != nil {
+			log.Panic(err)
+		}
+
+		lines := strings.Split(string(bytes), "\n")
+		reqUrl := resp.Request.URL
+		for i := 0; i < len(lines); i++ {
+			line := lines[i]
+			if !strings.HasPrefix(line, "https://") && (strings.HasSuffix(line, ".m3u8") || strings.HasSuffix(line, ".ts")) {
+				path := reqUrl.EscapedPath()
+				path = path[0 : strings.LastIndex(path, "/")+1]
+				lines[i] = "https://" + reqUrl.Hostname() + path + line
+			}
+		}
+
+		io.WriteString(w, strings.Join(lines, "\n"))
+	} else {
+		io.Copy(w, resp.Body)
+	}
 }
 
 func copyHeaders(from http.Header, to http.Header) {
 	// Loop over header names
 	for name, values := range from {
-		// Loop over all values for the name.
-		for _, value := range values {
-			to.Set(name, value)
+		if name != "Content-Length" {
+			// Loop over all values for the name.
+			for _, value := range values {
+				to.Set(name, value)
+			}
 		}
 	}
 }
