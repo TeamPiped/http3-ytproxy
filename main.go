@@ -220,21 +220,31 @@ func getBestThumbnail(path string) (newpath string) {
 }
 
 func main() {
-	socket := "socket" + string(os.PathSeparator) + "http-proxy.sock"
-	syscall.Unlink(socket)
-	listener, err := net.Listen("unix", socket)
+	port := os.Getenv("PORT")
+
 	srv := &http.Server{
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,
-		Addr:         ":8080",
+		Addr:         ":" + port, // Won't be used if listening on a file socket
 		Handler:      &requesthandler{},
 	}
-	if err != nil {
-		fmt.Println("Failed to bind to UDS, falling back to TCP/IP")
-		fmt.Println(err.Error())
-		srv.ListenAndServe()
+
+	if port == "" {
+		socket := "socket" + string(os.PathSeparator) + "http-proxy.sock"
+		syscall.Unlink(socket)
+		listener, err := net.Listen("unix", socket)
+
+		if err == nil {
+			fmt.Println(fmt.Sprintf("Listening on %s", socket))
+			defer listener.Close()
+			srv.Serve(listener)
+		} else {
+			fmt.Fprintln(os.Stderr, err.Error())
+			os.Exit(1)
+		}
 	} else {
-		defer listener.Close()
-		srv.Serve(listener)
+		// Listen on port
+		fmt.Println(fmt.Sprintf("Listening on port %s", port))
+		srv.ListenAndServe()
 	}
 }
