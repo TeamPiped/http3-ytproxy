@@ -219,22 +219,52 @@ func getBestThumbnail(path string) (newpath string) {
 	return strings.Replace(path, "maxres.jpg", "mqdefault.jpg", 1)
 }
 
+// exists returns whether the given file or directory exists
+func exists(path string) (bool, error) {
+	_, err := os.Stat(path)
+	if err == nil {
+		return true, nil
+	}
+	if os.IsNotExist(err) {
+		return false, nil
+	}
+	return false, err
+}
+
 func main() {
-	socket := "socket" + string(os.PathSeparator) + "http-proxy.sock"
-	syscall.Unlink(socket)
-	listener, err := net.Listen("unix", socket)
+	env_port := os.Getenv("PORT")
+	port := "8080"
+
+	if env_port != "" {
+		port = env_port
+	}
+
 	srv := &http.Server{
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,
-		Addr:         ":8080",
+		Addr:         ":" + port,
 		Handler:      &requesthandler{},
 	}
+
+	exists, err := exists("socket/")
+
 	if err != nil {
-		fmt.Println("Failed to bind to UDS, falling back to TCP/IP")
-		fmt.Println(err.Error())
-		srv.ListenAndServe()
-	} else {
+		log.Panicln(err)
+	}
+
+	if env_port == "" && exists {
+		socket := "socket" + string(os.PathSeparator) + "http-proxy.sock"
+		syscall.Unlink(socket)
+		listener, err := net.Listen("unix", socket)
+
+		if err != nil {
+			log.Panicln(err)
+		}
+
 		defer listener.Close()
 		srv.Serve(listener)
+	} else {
+		fmt.Println("WARNING: You are listening on a HTTP Socket, you are strongly recommended to use a Unix Domain Socket when running a public instance for performance reasons.")
+		srv.ListenAndServe()
 	}
 }
