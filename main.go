@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"regexp"
 	"strings"
 	"syscall"
 	"time"
@@ -51,9 +52,20 @@ var allowed_hosts = []string{
 	"lbryplayer.xyz",
 }
 
+var manifest_re = regexp.MustCompile(`(?m)URI="([^"]+)"`)
+
 type requesthandler struct{}
 
 func (*requesthandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Headers", "*")
+	w.Header().Set("Access-Control-Max-Age", "1728000")
+
+	if req.Method == "OPTIONS" {
+		w.WriteHeader(200)
+		return
+	}
 
 	q := req.URL.Query()
 	host := q.Get("host")
@@ -143,7 +155,7 @@ func (*requesthandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 	w.WriteHeader(resp.StatusCode)
 
-	if req.Method == "GET" && resp.Header.Get("Content-Type") == "application/x-mpegurl" {
+	if req.Method == "GET" && (resp.Header.Get("Content-Type") == "application/x-mpegurl" || resp.Header.Get("Content-Type") == "application/vnd.apple.mpegurl") {
 		bytes, err := io.ReadAll(resp.Body)
 
 		if err != nil {
@@ -157,7 +169,15 @@ func (*requesthandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 			if !strings.HasPrefix(line, "https://") && (strings.HasSuffix(line, ".m3u8") || strings.HasSuffix(line, ".ts")) {
 				path := reqUrl.EscapedPath()
 				path = path[0 : strings.LastIndex(path, "/")+1]
-				lines[i] = "https://" + reqUrl.Hostname() + path + line
+				line = "https://" + reqUrl.Hostname() + path + line
+			}
+			if strings.HasPrefix(line, "https://") {
+				lines[i] = RelativeUrl(line)
+			}
+
+			if manifest_re.MatchString(line) {
+				url := manifest_re.FindStringSubmatch(line)[1]
+				lines[i] = strings.Replace(line, url, RelativeUrl(url), 1)
 			}
 		}
 
@@ -170,7 +190,7 @@ func (*requesthandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 func copyHeaders(from http.Header, to http.Header) {
 	// Loop over header names
 	for name, values := range from {
-		if name != "Content-Length" {
+		if name != "Content-Length" && name != "Accept-Encoding" {
 			// Loop over all values for the name.
 			for _, value := range values {
 				to.Set(name, value)
@@ -217,6 +237,17 @@ func getBestThumbnail(path string) (newpath string) {
 	}
 
 	return strings.Replace(path, "maxres.jpg", "mqdefault.jpg", 1)
+}
+
+func RelativeUrl(in string) (newurl string) {
+	segment_url, err := url.Parse(in)
+	if err != nil {
+		log.Panic(err)
+	}
+	segment_query := segment_url.Query()
+	segment_query.Set("host", segment_url.Hostname())
+	segment_url.RawQuery = segment_query.Encode()
+	return segment_url.RequestURI()
 }
 
 func main() {
