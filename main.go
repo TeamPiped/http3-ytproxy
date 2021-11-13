@@ -130,16 +130,10 @@ func (*requesthandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		proxyURL.Path = getBestThumbnail(proxyURL.EscapedPath())
 	}
 
-	fmt.Println(proxyURL.String())
-
 	request, err := http.NewRequest(req.Method, proxyURL.String(), nil)
 
 	copyHeaders(req.Header, request.Header)
 	request.Header.Set("User-Agent", ua)
-
-	for name, value := range request.Header {
-		fmt.Printf("%s: %s\n", name, value)
-	}
 
 	if err != nil {
 		log.Panic(err)
