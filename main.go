@@ -118,7 +118,6 @@ func (*requesthandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 	path = strings.Replace(path, "/ggpht", "", 1)
 	path = strings.Replace(path, "/i/", "/", 1)
-
 	proxyURL, err := url.Parse("https://" + host + path)
 
 	if err != nil {
@@ -131,10 +130,16 @@ func (*requesthandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		proxyURL.Path = getBestThumbnail(proxyURL.EscapedPath())
 	}
 
+	fmt.Println(proxyURL.String())
+
 	request, err := http.NewRequest(req.Method, proxyURL.String(), nil)
 
 	copyHeaders(req.Header, request.Header)
 	request.Header.Set("User-Agent", ua)
+
+	for name, value := range request.Header {
+		fmt.Printf("%s: %s\n", name, value)
+	}
 
 	if err != nil {
 		log.Panic(err)
@@ -171,7 +176,7 @@ func (*requesthandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 			if !strings.HasPrefix(line, "https://") && (strings.HasSuffix(line, ".m3u8") || strings.HasSuffix(line, ".ts")) {
 				path := reqUrl.EscapedPath()
 				path = path[0 : strings.LastIndex(path, "/")+1]
-				line = "https://" + reqUrl.Hostname() + path_prefix + path + line
+				line = "https://" + reqUrl.Hostname() + path + line
 			}
 			if strings.HasPrefix(line, "https://") {
 				lines[i] = RelativeUrl(line)
@@ -192,7 +197,7 @@ func (*requesthandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 func copyHeaders(from http.Header, to http.Header) {
 	// Loop over header names
 	for name, values := range from {
-		if name != "Content-Length" && name != "Accept-Encoding" {
+		if name != "Content-Length" && name != "Accept-Encoding" && name != "Authorization" {
 			// Loop over all values for the name.
 			for _, value := range values {
 				to.Set(name, value)
