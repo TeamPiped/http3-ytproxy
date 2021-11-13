@@ -118,6 +118,7 @@ func (*requesthandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 	path = strings.Replace(path, "/ggpht", "", 1)
 	path = strings.Replace(path, "/i/", "/", 1)
+
 	proxyURL, err := url.Parse("https://" + host + path)
 
 	if err != nil {
@@ -252,9 +253,7 @@ func RelativeUrl(in string) (newurl string) {
 }
 
 func main() {
-	if len(os.Args) == 2 {
-		path_prefix = os.Args[1]
-	}
+	path_prefix = os.Getenv("PREFIX_PATH")
 
 	socket := "socket" + string(os.PathSeparator) + "http-proxy.sock"
 	syscall.Unlink(socket)
