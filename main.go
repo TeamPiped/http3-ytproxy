@@ -52,6 +52,8 @@ var allowed_hosts = []string{
 	"lbryplayer.xyz",
 }
 
+var path_prefix = ""
+
 var manifest_re = regexp.MustCompile(`(?m)URI="([^"]+)"`)
 
 type requesthandler struct{}
@@ -169,7 +171,7 @@ func (*requesthandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 			if !strings.HasPrefix(line, "https://") && (strings.HasSuffix(line, ".m3u8") || strings.HasSuffix(line, ".ts")) {
 				path := reqUrl.EscapedPath()
 				path = path[0 : strings.LastIndex(path, "/")+1]
-				line = "https://" + reqUrl.Hostname() + path + line
+				line = "https://" + reqUrl.Hostname() + path_prefix + path + line
 			}
 			if strings.HasPrefix(line, "https://") {
 				lines[i] = RelativeUrl(line)
@@ -247,10 +249,14 @@ func RelativeUrl(in string) (newurl string) {
 	segment_query := segment_url.Query()
 	segment_query.Set("host", segment_url.Hostname())
 	segment_url.RawQuery = segment_query.Encode()
-	return segment_url.RequestURI()
+	return path_prefix + segment_url.RequestURI()
 }
 
 func main() {
+	if len(os.Args) == 2 {
+		path_prefix = os.Args[1]
+	}
+
 	socket := "socket" + string(os.PathSeparator) + "http-proxy.sock"
 	syscall.Unlink(socket)
 	listener, err := net.Listen("unix", socket)
