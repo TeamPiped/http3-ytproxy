@@ -52,6 +52,8 @@ var allowed_hosts = []string{
 	"lbryplayer.xyz",
 }
 
+var path_prefix = ""
+
 var manifest_re = regexp.MustCompile(`(?m)URI="([^"]+)"`)
 
 type requesthandler struct{}
@@ -190,7 +192,7 @@ func (*requesthandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 func copyHeaders(from http.Header, to http.Header) {
 	// Loop over header names
 	for name, values := range from {
-		if name != "Content-Length" && name != "Accept-Encoding" {
+		if name != "Content-Length" && name != "Accept-Encoding" && name != "Authorization" {
 			// Loop over all values for the name.
 			for _, value := range values {
 				to.Set(name, value)
@@ -247,10 +249,12 @@ func RelativeUrl(in string) (newurl string) {
 	segment_query := segment_url.Query()
 	segment_query.Set("host", segment_url.Hostname())
 	segment_url.RawQuery = segment_query.Encode()
-	return segment_url.RequestURI()
+	return path_prefix + segment_url.RequestURI()
 }
 
 func main() {
+	path_prefix = os.Getenv("PREFIX_PATH")
+
 	socket := "socket" + string(os.PathSeparator) + "http-proxy.sock"
 	syscall.Unlink(socket)
 	listener, err := net.Listen("unix", socket)
