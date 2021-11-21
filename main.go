@@ -116,6 +116,8 @@ func (*requesthandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 	path := req.URL.EscapedPath()
 
+	path = strings.Replace(path, path_prefix, "", 1)
+	
 	path = strings.Replace(path, "/ggpht", "", 1)
 	path = strings.Replace(path, "/i/", "/", 1)
 
