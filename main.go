@@ -117,7 +117,7 @@ func (*requesthandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	path := req.URL.EscapedPath()
 
 	path = strings.Replace(path, path_prefix, "", 1)
-	
+
 	path = strings.Replace(path, "/ggpht", "", 1)
 	path = strings.Replace(path, "/i/", "/", 1)
 
@@ -127,23 +127,15 @@ func (*requesthandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		log.Panic(err)
 	}
 
-	proxyURL.RawQuery = ""
-	for k, v := range q {
-		for _, vv := range v {
-			proxyURL.Query().Set(k, vv)
-		}
-	}
+	proxyURL.RawQuery = q.Encode()
 
 	if strings.HasSuffix(proxyURL.EscapedPath(), "maxres.jpg") {
 		proxyURL.Path = getBestThumbnail(proxyURL.EscapedPath())
 	}
 
 	request, err := http.NewRequest(req.Method, proxyURL.String(), nil)
-	fmt.Println(proxyURL.Query().Encode())
-	fmt.Println(proxyURL.String())
 	copyHeaders(req.Header, request.Header)
 	request.Header.Set("User-Agent", ua)
-	fmt.Printf("User-Agent: %s\n", ua)
 
 	if err != nil {
 		log.Panic(err)
@@ -205,7 +197,6 @@ func copyHeaders(from http.Header, to http.Header) {
 			// Loop over all values for the name.
 			for _, value := range values {
 				to.Set(name, value)
-				fmt.Printf("%s: %s\n", name, value)
 			}
 		}
 	}
