@@ -132,9 +132,10 @@ func (*requesthandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	}
 
 	request, err := http.NewRequest(req.Method, proxyURL.String(), nil)
-
+	fmt.Println(proxyURL.String())
 	copyHeaders(req.Header, request.Header)
 	request.Header.Set("User-Agent", ua)
+	fmt.Printf("User-Agent: %s\n", ua)
 
 	if err != nil {
 		log.Panic(err)
@@ -196,6 +197,7 @@ func copyHeaders(from http.Header, to http.Header) {
 			// Loop over all values for the name.
 			for _, value := range values {
 				to.Set(name, value)
+				fmt.Printf("%s: %s\n", name, value)
 			}
 		}
 	}
@@ -249,7 +251,8 @@ func RelativeUrl(in string) (newurl string) {
 	segment_query := segment_url.Query()
 	segment_query.Set("host", segment_url.Hostname())
 	segment_url.RawQuery = segment_query.Encode()
-	return path_prefix + segment_url.RequestURI()
+	segment_url.Path = path_prefix + segment_url.Path
+	return segment_url.RequestURI()
 }
 
 func main() {
