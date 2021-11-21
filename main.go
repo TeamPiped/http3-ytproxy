@@ -125,13 +125,19 @@ func (*requesthandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		log.Panic(err)
 	}
 
-	proxyURL.RawQuery = q.Encode()
+	proxyURL.RawQuery = ""
+	for k, v := range q {
+		for _, vv := range v {
+			proxyURL.Query().Set(k, vv)
+		}
+	}
 
 	if strings.HasSuffix(proxyURL.EscapedPath(), "maxres.jpg") {
 		proxyURL.Path = getBestThumbnail(proxyURL.EscapedPath())
 	}
 
 	request, err := http.NewRequest(req.Method, proxyURL.String(), nil)
+	fmt.Println(proxyURL.Query().Encode())
 	fmt.Println(proxyURL.String())
 	copyHeaders(req.Header, request.Header)
 	request.Header.Set("User-Agent", ua)
