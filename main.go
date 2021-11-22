@@ -115,7 +115,6 @@ func (*requesthandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	}
 
 	path := req.URL.EscapedPath()
-	fmt.Println(path)
 
 	path = strings.Replace(path, path_prefix, "", 1)
 
@@ -129,7 +128,6 @@ func (*requesthandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	}
 
 	proxyURL.RawQuery = q.Encode()
-	fmt.Println(q.Encode())
 
 	if strings.HasSuffix(proxyURL.EscapedPath(), "maxres.jpg") {
 		proxyURL.Path = getBestThumbnail(proxyURL.EscapedPath())
