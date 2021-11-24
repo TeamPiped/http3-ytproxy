@@ -132,6 +132,7 @@ func (*requesthandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	}
 
 	request, err := http.NewRequest(req.Method, proxyURL.String(), nil)
+
 	copyHeaders(req.Header, request.Header)
 	request.Header.Set("User-Agent", ua)
 
