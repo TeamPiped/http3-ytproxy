@@ -249,7 +249,8 @@ func RelativeUrl(in string) (newurl string) {
 	segment_query := segment_url.Query()
 	segment_query.Set("host", segment_url.Hostname())
 	segment_url.RawQuery = segment_query.Encode()
-	return path_prefix + segment_url.RequestURI()
+	segment_url.Path = path_prefix + segment_url.Path
+	return segment_url.RequestURI()
 }
 
 func main() {
