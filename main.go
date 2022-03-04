@@ -133,7 +133,7 @@ func (*requesthandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 	request, err := http.NewRequest(req.Method, proxyURL.String(), nil)
 
-	copyHeaders(req.Header, request.Header)
+	copyHeaders(req.Header, request.Header, false)
 	request.Header.Set("User-Agent", ua)
 
 	if err != nil {
@@ -153,7 +153,8 @@ func (*requesthandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 	defer resp.Body.Close()
 
-	copyHeaders(resp.Header, w.Header())
+	NoRewrite := strings.HasPrefix(resp.Header.Get("Content-Type"), "audio") || strings.HasPrefix(resp.Header.Get("Content-Type"), "video") || strings.HasPrefix(resp.Header.Get("Content-Type"), "image")
+	copyHeaders(resp.Header, w.Header(), NoRewrite)
 
 	w.WriteHeader(resp.StatusCode)
 
@@ -189,10 +190,10 @@ func (*requesthandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func copyHeaders(from http.Header, to http.Header) {
+func copyHeaders(from http.Header, to http.Header, length bool) {
 	// Loop over header names
 	for name, values := range from {
-		if name != "Content-Length" && name != "Accept-Encoding" && name != "Authorization" {
+		if (name != "Content-Length" || length) && name != "Accept-Encoding" && name != "Authorization" {
 			// Loop over all values for the name.
 			for _, value := range values {
 				to.Set(name, value)
