@@ -4,7 +4,8 @@ WORKDIR /app/
 
 COPY . .
 
-RUN go build -ldflags "-s -w" main.go
+RUN  --mount=type=cache,target=/root/.cache/go-build \
+    go build -ldflags "-s -w" main.go
 
 FROM alpine:edge
 
