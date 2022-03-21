@@ -50,6 +50,7 @@ var allowed_hosts = []string{
 	"ggpht.com",
 	"googleusercontent.com",
 	"lbryplayer.xyz",
+	"odycdn.com",
 }
 
 var path_prefix = ""
