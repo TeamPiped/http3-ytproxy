@@ -263,7 +263,7 @@ func main() {
 	listener, err := net.Listen("unix", socket)
 	srv := &http.Server{
 		ReadTimeout:  5 * time.Second,
-		WriteTimeout: 10 * time.Second,
+		WriteTimeout: 1 * time.Hour,
 		Addr:         ":8080",
 		Handler:      &requesthandler{},
 	}
