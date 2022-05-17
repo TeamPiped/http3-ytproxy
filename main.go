@@ -53,6 +53,15 @@ var allowed_hosts = []string{
 	"odycdn.com",
 }
 
+var strip_headers = []string{
+	"Accept-Encoding",
+	"Authorization",
+	"Origin",
+	"Referrer",
+	"Cookie",
+	"Set-Cookie",
+}
+
 var path_prefix = ""
 
 var manifest_re = regexp.MustCompile(`(?m)URI="([^"]+)"`)
@@ -193,8 +202,14 @@ func (*requesthandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 func copyHeaders(from http.Header, to http.Header, length bool) {
 	// Loop over header names
+outer:
 	for name, values := range from {
-		if (name != "Content-Length" || length) && name != "Accept-Encoding" && name != "Authorization" {
+		for _, header := range strip_headers {
+			if name == header {
+				continue outer
+			}
+		}
+		if (name != "Content-Length" || length) && strings.HasPrefix(name, "Access-Control") {
 			// Loop over all values for the name.
 			for _, value := range values {
 				to.Set(name, value)
