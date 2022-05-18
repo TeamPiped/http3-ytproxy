@@ -57,7 +57,7 @@ var strip_headers = []string{
 	"Accept-Encoding",
 	"Authorization",
 	"Origin",
-	"Referrer",
+	"Referer",
 	"Cookie",
 	"Set-Cookie",
 }
