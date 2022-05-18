@@ -209,7 +209,7 @@ outer:
 				continue outer
 			}
 		}
-		if (name != "Content-Length" || length) && strings.HasPrefix(name, "Access-Control") {
+		if (name != "Content-Length" || length) && !strings.HasPrefix(name, "Access-Control") {
 			// Loop over all values for the name.
 			for _, value := range values {
 				to.Set(name, value)
