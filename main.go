@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"image/jpeg"
 	"io"
 	"log"
 	"net"
@@ -13,6 +14,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/kolesa-team/go-webp/encoder"
+	"github.com/kolesa-team/go-webp/webp"
 	"github.com/lucas-clemente/quic-go/http3"
 )
 
@@ -60,6 +63,7 @@ var strip_headers = []string{
 	"Referer",
 	"Cookie",
 	"Set-Cookie",
+	"Etag",
 }
 
 var path_prefix = ""
@@ -163,7 +167,7 @@ func (*requesthandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 	defer resp.Body.Close()
 
-	NoRewrite := strings.HasPrefix(resp.Header.Get("Content-Type"), "audio") || strings.HasPrefix(resp.Header.Get("Content-Type"), "video") || strings.HasPrefix(resp.Header.Get("Content-Type"), "image")
+	NoRewrite := strings.HasPrefix(resp.Header.Get("Content-Type"), "audio") || strings.HasPrefix(resp.Header.Get("Content-Type"), "video") || strings.HasPrefix(resp.Header.Get("Content-Type"), "webp")
 	copyHeaders(resp.Header, w.Header(), NoRewrite)
 
 	w.WriteHeader(resp.StatusCode)
@@ -195,6 +199,18 @@ func (*requesthandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		}
 
 		io.WriteString(w, strings.Join(lines, "\n"))
+	} else if resp.Header.Get("Content-Type") == "image/jpeg" {
+		img, err := jpeg.Decode(resp.Body)
+
+		if err != nil {
+			log.Panic(err)
+		}
+
+		options, _ := encoder.NewLossyEncoderOptions(encoder.PresetDefault, 85)
+
+		w.Header().Set("Content-Type", "image/webp")
+
+		webp.Encode(w, img, options)
 	} else {
 		io.Copy(w, resp.Body)
 	}
@@ -212,6 +228,9 @@ outer:
 		if (name != "Content-Length" || length) && !strings.HasPrefix(name, "Access-Control") {
 			// Loop over all values for the name.
 			for _, value := range values {
+				if strings.Contains(value, "jpeg") {
+					continue
+				}
 				to.Set(name, value)
 			}
 		}
