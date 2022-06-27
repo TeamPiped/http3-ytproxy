@@ -24,13 +24,20 @@ var h3client = &http.Client{
 	Transport: &http3.RoundTripper{},
 }
 
+var dialer = &net.Dialer{
+	Timeout:   30 * time.Second,
+	KeepAlive: 30 * time.Second,
+}
+
 // http/2 client
 var h2client = &http.Client{
 	Transport: &http.Transport{
-		Dial: (&net.Dialer{
-			Timeout:   30 * time.Second,
-			KeepAlive: 30 * time.Second,
-		}).Dial,
+		Dial: func(network, addr string) (net.Conn, error) {
+			if disable_ipv6 {
+				network = "tcp4"
+			}
+			return dialer.Dial(network, addr)
+		},
 		TLSHandshakeTimeout:   10 * time.Second,
 		ResponseHeaderTimeout: 20 * time.Second,
 		ExpectContinueTimeout: 1 * time.Second,
@@ -69,6 +76,8 @@ var strip_headers = []string{
 var path_prefix = ""
 
 var manifest_re = regexp.MustCompile(`(?m)URI="([^"]+)"`)
+
+var disable_ipv6 = false
 
 type requesthandler struct{}
 
@@ -291,6 +300,8 @@ func RelativeUrl(in string) (newurl string) {
 
 func main() {
 	path_prefix = os.Getenv("PREFIX_PATH")
+
+	disable_ipv6 = os.Getenv("DISABLE_IPV6") == "1"
 
 	socket := "socket" + string(os.PathSeparator) + "http-proxy.sock"
 	syscall.Unlink(socket)
