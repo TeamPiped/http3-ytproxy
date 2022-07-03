@@ -78,6 +78,7 @@ var path_prefix = ""
 var manifest_re = regexp.MustCompile(`(?m)URI="([^"]+)"`)
 
 var disable_ipv6 = false
+var disable_webp = false
 
 type requesthandler struct{}
 
@@ -208,7 +209,7 @@ func (*requesthandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		}
 
 		io.WriteString(w, strings.Join(lines, "\n"))
-	} else if resp.Header.Get("Content-Type") == "image/jpeg" {
+	} else if !disable_webp && resp.Header.Get("Content-Type") == "image/jpeg" {
 		img, err := jpeg.Decode(resp.Body)
 
 		if err != nil {
@@ -302,6 +303,7 @@ func main() {
 	path_prefix = os.Getenv("PREFIX_PATH")
 
 	disable_ipv6 = os.Getenv("DISABLE_IPV6") == "1"
+	disable_webp = os.Getenv("DISABLE_WEBP") == "1"
 
 	socket := "socket" + string(os.PathSeparator) + "http-proxy.sock"
 	syscall.Unlink(socket)
